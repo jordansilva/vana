@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Vana</string>
+
+    <string name="home">Home</string>
+    <string name="calendar">Calendar</string>
+    <string name="activities">Activities</string>
+    <string name="profile">Profile</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_activities">My Activities</string>
+    <string name="nav_profile">Me</string>
+    <string name="greetings_hi">Hi %s 👋</string>
+
 </resources>
