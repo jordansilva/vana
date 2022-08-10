@@ -11,6 +11,7 @@
     <string name="nav_calendar">Calendar</string>
     <string name="nav_activities">My Activities</string>
     <string name="nav_profile">Me</string>
-    <string name="greetings_hi">Hi %s 👋</string>
+    <string name="greetings_hi">Hi, %s 👋</string>
+    <string name="profile_picture">A profile picture</string>
 
 </resources>

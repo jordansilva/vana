@@ -37,7 +37,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     var currDestination by remember { mutableStateOf(Routes.Home) }
 
-    navController.addOnDestinationChangedListener { controller, destination, arguments ->
+    navController.addOnDestinationChangedListener { _, destination, _ ->
         currDestination = destination.route!!
     }
 

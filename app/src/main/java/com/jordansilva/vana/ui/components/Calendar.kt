@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ThumbUp
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,7 +38,11 @@ import java.util.*
 
 
 @Composable
-fun Calendar(visibleItems: Int = 10) {
+fun ShortCalendar(
+    modifier: Modifier = Modifier,
+    visibleItems: Int = 10,
+    onItemSelected: (Date) -> Unit
+) {
     val days = initializeList(visibleItems)
 
     val state = rememberLazyListState()
@@ -46,7 +52,7 @@ fun Calendar(visibleItems: Int = 10) {
         modifier = Modifier.padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        CalendarHeader()
+        CalendarHeader(modifier)
 
         LazyRow(
             state = state,
@@ -58,17 +64,20 @@ fun Calendar(visibleItems: Int = 10) {
                     dayOfWeek = it.dayOfWeekShort,
                     dayOfMonth = it.day,
                     selected = selected == it
-                ) { selected = it }
+                ) {
+                    selected = it
+                    onItemSelected(Date(it.timeInMillis))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CalendarHeader() {
+private fun CalendarHeader(modifier: Modifier = Modifier) {
     val dateFormat = DateFormat.getDateInstance()
     val date = dateFormat.format(Calendar.getInstance(Locale.getDefault()).time)
-    Text(date, modifier = Modifier.padding(start = 12.dp), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+    Text(date, modifier = modifier, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
 }
 
 @Composable
@@ -79,6 +88,11 @@ fun CalendarDay(dayOfWeek: String, dayOfMonth: Int, selected: Boolean, onClick: 
 
     val modifier = Modifier
         .clip(RoundedCornerShape(14.dp))
+        .selectable(
+            selected = selected,
+            role = Role.Tab,
+            onClick = { onClick.invoke() }
+        )
         .width(size)
         .background(backgroundColor)
         .border(1.dp, borderColor, RoundedCornerShape(14.dp))
@@ -86,7 +100,8 @@ fun CalendarDay(dayOfWeek: String, dayOfMonth: Int, selected: Boolean, onClick: 
 
     if (selected) {
         Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.ThumbUp,
+            Icon(
+                Icons.Outlined.ThumbUp,
                 contentDescription = "",
                 modifier = Modifier
                     .weight(1f)
@@ -97,14 +112,33 @@ fun CalendarDay(dayOfWeek: String, dayOfMonth: Int, selected: Boolean, onClick: 
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(dayOfWeek, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = LightGrey)
-                Text(dayOfMonth.toString(), fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, color = DarkGray)
+                Text(
+                    dayOfWeek,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    color = LightGrey
+                )
+                Text(
+                    dayOfMonth.toString(),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 12.sp,
+                    color = DarkGray
+                )
             }
         }
     } else {
-        Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(
+            modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(dayOfWeek, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = LightGrey)
-            Text(dayOfMonth.toString(), fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, color = LightGrey)
+            Text(
+                dayOfMonth.toString(),
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 12.sp,
+                color = LightGrey
+            )
         }
     }
 }
@@ -116,6 +150,7 @@ private data class CalendarItem(
     val year: Int,
     val dayOfWeek: Int,
     val dayOfWeekShort: String,
+    val timeInMillis: Long
 ) : Parcelable
 
 
@@ -124,31 +159,36 @@ private fun initializeList(visibleItems: Int): List<CalendarItem> {
     val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
     val calendar = Calendar.getInstance(Locale.getDefault())
 
-    CalendarItem(
+    val list = mutableListOf<CalendarItem>()
+
+    list += CalendarItem(
         day = calendar.get(Calendar.DAY_OF_MONTH),
         month = calendar.get(Calendar.MONTH),
         year = calendar.get(Calendar.YEAR),
         dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK),
-        dayOfWeekShort = dayFormat.format(calendar.time)
+        dayOfWeekShort = dayFormat.format(calendar.time),
+        timeInMillis = calendar.timeInMillis
     )
 
-    return (1..visibleItems).map {
+    repeat(visibleItems) {
         calendar.add(Calendar.DAY_OF_MONTH, 1)
-
-        CalendarItem(
+        list += CalendarItem(
             day = calendar.get(Calendar.DAY_OF_MONTH),
             month = calendar.get(Calendar.MONTH),
             year = calendar.get(Calendar.YEAR),
             dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK),
-            dayOfWeekShort = dayFormat.format(calendar.time)
+            dayOfWeekShort = dayFormat.format(calendar.time),
+            timeInMillis = calendar.timeInMillis
         )
     }
+
+    return list
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun CalendarPreview() {
     VanaTheme {
-        Calendar()
+        ShortCalendar {}
     }
 }
